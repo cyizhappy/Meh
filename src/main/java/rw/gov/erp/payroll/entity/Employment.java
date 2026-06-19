@@ -41,9 +41,12 @@ public class Employment {
      * Base salary used for payroll computation.
      * Gross = baseSalary + house(14%) + transport(14%)
      * Net   = baseSalary - (tax + pension + medical + others)
+     *
+     * Note: PENDING employees may have a salary of 0 until admin assigns it.
+     * Payroll generation only processes ACTIVE employees, so 0 salary is safe.
      */
     @NotNull(message = "Base salary is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Salary must be greater than 0")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Salary must be 0 or greater")
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal baseSalary;
 
