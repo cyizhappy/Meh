@@ -31,9 +31,7 @@ public class SwaggerConfig {
                                 - **Task 2**: Deduction & Tax Management (Tax 30%, Pension 6%, Medical 5%, Others 5%, House 14%, Transport 14%)
                                 - **Task 4**: Payroll Generation & Approval with salary computation
                                 - **Task 5**: DB Trigger-based messaging on payroll approval
-                                
-                                ### Authentication:
-                                Use the `/api/auth/login` endpoint to get your JWT token, then click 'Authorize' and enter: `Bearer <your-token>`
+ 
                                 """)
                         .version("1.0.0")
                         .contact(new Contact()

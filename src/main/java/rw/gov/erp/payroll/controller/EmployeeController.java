@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import rw.gov.erp.payroll.dto.request.EmployeeRequest;
 import rw.gov.erp.payroll.dto.response.ApiResponse;
 import rw.gov.erp.payroll.entity.Employee;
@@ -29,6 +30,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @Operation(summary = "Create a new employee (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<Employee>> createEmployee(
             @Valid @RequestBody EmployeeRequest request) {
@@ -38,6 +40,7 @@ public class EmployeeController {
     }
 
     @Operation(summary = "Get all employees (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<Employee>>> getAllEmployees() {
         return ResponseEntity.ok(ApiResponse.success("Employees retrieved", employeeService.getAllEmployees()));
@@ -59,6 +62,7 @@ public class EmployeeController {
     }
 
     @Operation(summary = "Update employee personal information (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Employee>> updateEmployee(
             @PathVariable Long id,
@@ -68,6 +72,7 @@ public class EmployeeController {
     }
 
     @Operation(summary = "Delete employee (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);

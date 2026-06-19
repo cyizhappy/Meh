@@ -6,10 +6,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import rw.gov.erp.payroll.dto.response.ApiResponse;
 import rw.gov.erp.payroll.entity.Message;
 import rw.gov.erp.payroll.service.MessageService;
-
+ 
 import java.util.List;
 
 /**
@@ -30,6 +31,7 @@ public class MessageController {
         summary = "Get all messages (ADMIN view)",
         description = "Returns all messages inserted by the PostgreSQL trigger when payroll was approved"
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<Message>>> getAllMessages() {
         return ResponseEntity.ok(ApiResponse.success("Messages retrieved", messageService.getAllMessages()));
@@ -52,9 +54,10 @@ public class MessageController {
     }
 
     @Operation(
-        summary = "Get messages for a specific month-year",
+        summary = "Get messages for a specific month-year (ADMIN only)",
         description = "monthYear format: DECEMBER-2024"
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/period/{monthYear}")
     public ResponseEntity<ApiResponse<List<Message>>> getByPeriod(@PathVariable String monthYear) {
         return ResponseEntity.ok(ApiResponse.success("Period messages retrieved",

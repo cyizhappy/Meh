@@ -40,7 +40,7 @@ public class EmploymentService {
         try {
             status = EmploymentStatus.valueOf(request.getStatus().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid status. Must be ACTIVE or INACTIVE");
+            throw new BadRequestException("Invalid status. Must be PENDING, ACTIVE, or INACTIVE");
         }
 
         String employeeCode = generateEmployeeCode();
@@ -59,14 +59,36 @@ public class EmploymentService {
     }
 
     public Employment getEmploymentById(Long id) {
-        return employmentRepository.findById(id)
+        Employment employment = employmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employment not found with id: " + id));
+
+        org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (!isAdmin && !auth.getName().equalsIgnoreCase(employment.getEmployee().getEmail())) {
+                throw new org.springframework.security.access.AccessDeniedException("You are not authorized to view this employment record");
+            }
+        }
+        return employment;
     }
 
     public Employment getEmploymentByEmployeeId(Long employeeId) {
-        return employmentRepository.findByEmployeeId(employeeId)
+        Employment employment = employmentRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Employment record not found for employee id: " + employeeId));
+
+        org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (!isAdmin && !auth.getName().equalsIgnoreCase(employment.getEmployee().getEmail())) {
+                throw new org.springframework.security.access.AccessDeniedException("You are not authorized to view this employment record");
+            }
+        }
+        return employment;
     }
 
     public List<Employment> getAllEmployments() {
@@ -77,6 +99,31 @@ public class EmploymentService {
         return employmentRepository.findByStatus(EmploymentStatus.ACTIVE);
     }
 
+    /**
+     * List all PENDING employment records (self-registered employees awaiting admin approval)
+     */
+    public List<Employment> getPendingEmployments() {
+        return employmentRepository.findByStatus(EmploymentStatus.PENDING);
+    }
+
+    /**
+     * Admin approves a PENDING employee → changes status to ACTIVE.
+     * The admin should update department/position/salary first via updateEmployment(),
+     * then call this to activate the employee for payroll.
+     */
+    public Employment approveEmployment(Long id) {
+        Employment employment = employmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employment not found with id: " + id));
+
+        if (employment.getStatus() != EmploymentStatus.PENDING) {
+            throw new BadRequestException(
+                    "Only PENDING employees can be approved. Current status: " + employment.getStatus());
+        }
+
+        employment.setStatus(EmploymentStatus.ACTIVE);
+        return employmentRepository.save(employment);
+    }
+
     public Employment updateEmployment(Long id, EmploymentRequest request) {
         Employment employment = getEmploymentById(id);
 
@@ -84,7 +131,7 @@ public class EmploymentService {
         try {
             status = EmploymentStatus.valueOf(request.getStatus().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid status. Must be ACTIVE or INACTIVE");
+            throw new BadRequestException("Invalid status. Must be PENDING, ACTIVE, or INACTIVE");
         }
 
         employment.setDepartment(request.getDepartment());

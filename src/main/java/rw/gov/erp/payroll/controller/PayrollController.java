@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import rw.gov.erp.payroll.dto.response.ApiResponse;
 import rw.gov.erp.payroll.dto.response.PayslipResponse;
 import rw.gov.erp.payroll.service.PayrollService;
@@ -35,6 +36,7 @@ public class PayrollController {
         description = "Computes gross, net salary and deductions for all ACTIVE employees. " +
                       "Prevents duplicates for the same employee/month/year."
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/generate/{month}/{year}")
     public ResponseEntity<ApiResponse<List<PayslipResponse>>> generatePayroll(
             @PathVariable Integer month,
@@ -51,6 +53,7 @@ public class PayrollController {
                       "The PostgreSQL trigger fires automatically and inserts notification messages " +
                       "into the messages table for each employee."
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/approve/{month}/{year}")
     public ResponseEntity<ApiResponse<List<PayslipResponse>>> approvePayroll(
             @PathVariable Integer month,
@@ -62,6 +65,7 @@ public class PayrollController {
     }
 
     @Operation(summary = "Get all payslips for a specific month/year (ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{month}/{year}")
     public ResponseEntity<ApiResponse<List<PayslipResponse>>> getPayrollByPeriod(
             @PathVariable Integer month,
